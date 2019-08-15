@@ -1,0 +1,84 @@
+1. Install open-jdk
+2. Create tomcat user
+sudo useradd -r -m -U -d /opt/tomcat -s /bin/false tomcat
+3. Install tomcat
+wget http://www-eu.apache.org/dist/tomcat/tomcat-9/v9.0.14/bin/apache-tomcat-9.0.14.tar.gz -P /tmp
+4. Extract tomcat 
+sudo tar xf /tmp/apache-tomcat-7.0.96.tar.gz -C /opt/tomcat/
+5. Create symbolic link
+sudo ln -s /opt/tomcat/apache-tomcat-7.0.96/ /opt/tomcat/latest 
+
+Later if you want to upgrade your Tomcat installation you can simply unpack the newer version and change the symlink to point to the latest version.
+6. sudo chown -RH tomcat: /opt/tomcat/latest
+7. change directory ownership to user and group tomcat
+sudo chown -RH tomcat: /opt/tomcat/latest
+8.Make executable scripts in bin
+sudo sh -c 'chmod +x /opt/tomcat/latest/bin/*.sh'
+9. Create a systemd unit file
+To run tomcat as a service we will create a new unit file.
+
+sudo nano /etc/systemd/system/tomcat.service
+
+Paste
+
+[Unit]
+Description=Tomcat 9 servlet container
+After=network.target
+
+[Service]
+Type=forking
+
+User=tomcat
+Group=tomcat
+
+Environment="JAVA_HOME=/usr/lib/jvm/default-java"
+Environment="JAVA_OPTS=-Djava.security.egd=file:///dev/urandom -Djava.awt.headless=true"
+
+Environment="CATALINA_BASE=/opt/tomcat/latest"
+Environment="CATALINA_HOME=/opt/tomcat/latest"
+Environment="CATALINA_PID=/opt/tomcat/latest/temp/tomcat.pid"
+Environment="CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
+
+ExecStart=/opt/tomcat/latest/bin/startup.sh
+ExecStop=/opt/tomcat/latest/bin/shutdown.sh
+
+[Install]
+WantedBy=multi-user.target
+
+
+10. Reload daemons
+sudo systemctl daemon-reload
+
+11. Start tomcat service by executing
+sudo systemctl start tomcat
+
+12. Verify service
+sudo systemctl status tomcat
+
+13. Add new user
+/opt/tomcat/latest/conf/tomcat-users.xml
+<tomcat-users>
+<!--
+    Comments
+-->
+   <role rolename="admin-gui"/>
+   <role rolename="manager-gui"/>
+   <user username="admin" password="admin_password" roles="admin-gui,manager-gui"/>
+</tomcat-users>
+
+14. Test 
+http://<your_domain_or_IP_address>:8080 or localhost:8080
+
+Reference: https://linuxize.com/post/how-to-install-tomcat-9-on-ubuntu-18-04/
+
+15. First application
+https://www.zkoss.org/wiki/ZK%20Installation%20Guide/Quick%20Start/Create%20and%20Run%20Your%20First%20ZK%20Application%20with%20Eclipse%20and%20Maven
+
+16. Run project with tomcat
+https://www.dev2qa.com/how-to-deploy-a-maven-project-to-tomcat-from-eclipse/
+
+
+
+
+
+
